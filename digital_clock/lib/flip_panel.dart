@@ -118,6 +118,8 @@ class FlipClock extends StatelessWidget {
             startTime,
             "days"),
         Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Padding(
               padding: spacing,
@@ -132,35 +134,39 @@ class FlipClock extends StatelessWidget {
         )
       ]);
     }
-    if (_showHours) {
-      digitList.addAll([
-        _buildSegment(
-            timeStream,
-            (DateTime time) => (countdownMode)
-                ? (timeLeft.inHours % 24) ~/ 10
-                : (time.hour) ~/ 10,
-            (DateTime time) => (countdownMode)
-                ? (timeLeft.inHours % 24) % 10
-                : (time.hour) % 10,
-            startTime,
-            "Hours"),
-        Column(
-          children: <Widget>[
-            Padding(
-              padding: spacing,
-              child: _separator,
-            ),
-            (_showDays)
-                ? Container(color: Colors.black)
-                : Container(
-                    color: Colors.transparent,
-                  )
-          ],
-        )
-      ]);
-    }
+//    if (_showHours) {
+//      digitList.addAll([
+//        _buildSegment(
+//            timeStream,
+//            (DateTime time) => (countdownMode)
+//                ? (timeLeft.inHours % 24) ~/ 10
+//                : (time.hour) ~/ 10,
+//            (DateTime time) => (countdownMode)
+//                ? (timeLeft.inHours % 24) % 10
+//                : (time.hour) % 10,
+//            startTime,
+//            "Hours"),
+//        Column(
+//          mainAxisAlignment: MainAxisAlignment.center,
+//          crossAxisAlignment: CrossAxisAlignment.center,
+//          children: <Widget>[
+//            Padding(
+//              padding: spacing,
+//              child: _separator,
+//            ),
+//            (_showDays)
+//                ? Container(color: Colors.black)
+//                : Container(
+//                    color: Colors.transparent,
+//                  )
+//          ],
+//        )
+//      ]);
+//    }
     return Row(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: digitList
         ..addAll([
           _buildSegment(
@@ -174,6 +180,8 @@ class FlipClock extends StatelessWidget {
               startTime,
               "minutes"),
           Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Padding(
                 padding: spacing,
@@ -316,8 +324,8 @@ class FlipPanel<T> extends StatefulWidget {
     @required this.itemStream,
     @required StreamItemBuilder<T> itemBuilder,
     this.initValue,
-    this.duration = const Duration(milliseconds: 50),
-    this.spacing = 0.5,
+    this.duration = const Duration(milliseconds: 0),
+    this.spacing = 0.0,
     this.direction = FlipDirection.down,
   })  : assert(itemStream != null),
         indexedItemBuilder = null,
@@ -340,8 +348,8 @@ class _FlipPanelState<T> extends State<FlipPanel>
   bool _isReversePhase;
   bool _isStreamMode;
   bool _running;
-  final _perspective = 0.00003;
-  final _zeroAngle = 0.00001;
+  final _perspective = 0.003;
+  final _zeroAngle = 0.001;
   int _loop;
   T _currentValue, _nextValue;
   Timer _timer;

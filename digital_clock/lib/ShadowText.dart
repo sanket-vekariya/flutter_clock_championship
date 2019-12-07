@@ -14,8 +14,8 @@ class ShadowText extends StatelessWidget {
       child: new Stack(
         children: [
           new Positioned(
-            top: 2.0,
-            left: 2.0,
+            top: 1.0,
+            left: 1.0,
             child: new Text(
               data,
               style: style.copyWith(
@@ -24,7 +24,7 @@ class ShadowText extends StatelessWidget {
             ),
           ),
           new BackdropFilter(
-            filter: new ui.ImageFilter.blur(sigmaX: 0.0, sigmaY: 3.0),
+            filter: new ui.ImageFilter.blur(sigmaX: 0.0, sigmaY: 2.0),
             child: new Text(data, style: style),
           ),
         ],

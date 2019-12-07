@@ -23,3 +23,11 @@ flutter:
     - family: PressStart2P
       fonts:
         - asset: third_party/PressStart2P-Regular.ttf
+        - asset: images/cloudy.gif
+        - asset: images/foggy.gif
+        - asset: images/rainy.gif
+        - asset: images/snowy.gif
+        - asset: images/sunny.gif
+        - asset: images/stormy.gif
+        - asset: images/windy.gif
+
