@@ -1,61 +1,57 @@
 import 'dart:async';
 
-import 'package:digital_clock/clock_dial_painter.dart';
-import 'package:digital_clock/flip_panel.dart';
-import 'package:digital_clock/hand_second.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clock_helper/model.dart';
 import 'package:intl/intl.dart';
+import 'package:sanket_clock/clock_dial_canvas.dart';
+import 'package:sanket_clock/flip_panel.dart';
+import 'package:sanket_clock/hand_second.dart';
 
-enum _Element {
+enum _Substance {
   background,
   text,
   shadow,
   pointerCanvas,
   dayStartBackground,
   dayEndBackground,
-  canvasStartBackground,
-  canvasEndBackground,
 }
 
 final _lightTheme = {
-  _Element.background: Colors.black12,
-  _Element.text: Colors.white,
-  _Element.shadow: Colors.black,
-  _Element.pointerCanvas: Colors.red,
-  _Element.dayStartBackground: Colors.orange,
-  _Element.dayEndBackground: Colors.black,
+  _Substance.background: Colors.black12,
+  _Substance.text: Colors.white,
+  _Substance.shadow: Colors.black,
+  _Substance.pointerCanvas: Colors.red,
+  _Substance.dayStartBackground: Colors.orange,
+  _Substance.dayEndBackground: Colors.black,
 };
 final _darkTheme = {
-  _Element.background: Colors.transparent,
-  _Element.text: Colors.white,
-  _Element.shadow: Colors.white,
-  _Element.pointerCanvas: Colors.red,
-  _Element.dayStartBackground: Colors.black,
-  _Element.dayEndBackground: Colors.orange,
-  _Element.canvasStartBackground: Colors.black87,
-  _Element.canvasEndBackground: Colors.orange,
+  _Substance.background: Colors.transparent,
+  _Substance.text: Colors.white,
+  _Substance.shadow: Colors.white,
+  _Substance.pointerCanvas: Colors.red,
+  _Substance.dayStartBackground: Colors.black,
+  _Substance.dayEndBackground: Colors.orange,
 };
 
-class DigitalClock extends StatefulWidget {
-  const DigitalClock(this.model);
+class SanketClock extends StatefulWidget {
+  const SanketClock(this.clockModel);
 
-  final ClockModel model;
+  final ClockModel clockModel;
 
   @override
-  _DigitalClockState createState() => _DigitalClockState();
+  _SanketClockState createState() => _SanketClockState();
 }
 
-class _DigitalClockState extends State<DigitalClock>
+class _SanketClockState extends State<SanketClock>
     with TickerProviderStateMixin {
-  DateTime _dateTime = DateTime.now();
+  DateTime _currentDateTime = DateTime.now();
   Timer _timer;
 
   Animation<double> animation;
-  AnimationController controller;
-  AnimationController _controller;
-  List<Map<dynamic, String>> _categories = [
+  AnimationController timeUpdateController;
+  AnimationController bgUpdateController;
+  List<Map<dynamic, String>> _currentWeatherConditions = [
     {'icon': "images/cloudy.gif"},
     {'icon': "images/foggy.gif"},
     {'icon': "images/rainy.gif"},
@@ -67,52 +63,53 @@ class _DigitalClockState extends State<DigitalClock>
 
   @override
   void initState() {
-    controller = AnimationController(
+    timeUpdateController = AnimationController(
         duration: const Duration(milliseconds: 700), vsync: this);
-    _controller = AnimationController(
-      value: _dateTime.second / 60,
+    bgUpdateController = AnimationController(
+      value: _currentDateTime.hour / 24,
       upperBound: 1,
       lowerBound: 0,
-      duration: const Duration(minutes: 1),
+      duration: const Duration(hours: 24),
       vsync: this,
     )..repeat();
     super.initState();
-    widget.model.addListener(_updateModel);
-    _updateTime();
-    _updateModel();
+    widget.clockModel.addListener(_updateCurrentModel);
+    _updateCurrentTime();
+    _updateCurrentModel();
   }
 
   @override
-  void didUpdateWidget(DigitalClock oldWidget) {
+  void didUpdateWidget(SanketClock oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.model != oldWidget.model) {
-      oldWidget.model.removeListener(_updateModel);
-      widget.model.addListener(_updateModel);
+    if (widget.clockModel != oldWidget.clockModel) {
+      oldWidget.clockModel.removeListener(_updateCurrentModel);
+      widget.clockModel.addListener(_updateCurrentModel);
     }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    widget.model.removeListener(_updateModel);
-    widget.model.dispose();
-    controller.dispose();
-    _controller.dispose();
+    widget.clockModel.removeListener(_updateCurrentModel);
+    widget.clockModel.dispose();
+    timeUpdateController.dispose();
+    bgUpdateController.dispose();
+    animation.removeListener(null);
     super.dispose();
   }
 
-  void _updateModel() {
+  void _updateCurrentModel() {
     setState(() {});
   }
 
-  void _updateTime() {
+  void _updateCurrentTime() {
     setState(
       () {
-        _dateTime = DateTime.now();
-        controller.forward(from: 0);
+        _currentDateTime = DateTime.now();
+        timeUpdateController.forward(from: 0);
         _timer = Timer(
           Duration(seconds: 1),
-          _updateTime,
+          _updateCurrentTime,
         );
       },
     );
@@ -121,13 +118,13 @@ class _DigitalClockState extends State<DigitalClock>
   @override
   Widget build(BuildContext context) {
     var hour =
-        DateFormat(widget.model.is24HourFormat ? 'HH' : 'hh').format(_dateTime);
+        DateFormat(widget.clockModel.is24HourFormat ? 'HH' : 'hh').format(_currentDateTime);
     final Animation<double> offsetAnimation = Tween(begin: 0.0, end: 2.0)
         .chain(CurveTween(curve: Curves.linear))
-        .animate(controller)
+        .animate(timeUpdateController)
           ..addStatusListener((status) {
             if (status == AnimationStatus.completed) {
-              controller.reverse();
+              timeUpdateController.reverse();
             }
           });
     final colors = Theme.of(context).brightness == Brightness.light
@@ -139,15 +136,15 @@ class _DigitalClockState extends State<DigitalClock>
         TweenSequenceItem(
           weight: 1.0,
           tween: ColorTween(
-            begin: colors[_Element.dayStartBackground],
-            end: colors[_Element.dayEndBackground],
+            begin: colors[_Substance.dayStartBackground],
+            end: colors[_Substance.dayEndBackground],
           ),
         ),
         TweenSequenceItem(
           weight: 1.0,
           tween: ColorTween(
-            begin: colors[_Element.dayEndBackground],
-            end: colors[_Element.dayStartBackground],
+            begin: colors[_Substance.dayEndBackground],
+            end: colors[_Substance.dayStartBackground],
           ),
         ),
       ],
@@ -159,20 +156,20 @@ class _DigitalClockState extends State<DigitalClock>
             CurveTween(curve: Curves.linear),
           )
           .evaluate(
-            AlwaysStoppedAnimation(_controller.value),
+            AlwaysStoppedAnimation(bgUpdateController.value),
           ),
       fontFamily: 'Rock Salt',
       fontSize: fontSize,
       shadows: [
         Shadow(
           blurRadius: 3,
-          color: colors[_Element.shadow],
+          color: colors[_Substance.shadow],
           offset: Offset(3, 0),
         ),
       ],
     );
     return AnimatedBuilder(
-      animation: _controller,
+      animation: bgUpdateController,
       builder: (context, child) {
         return Scaffold(
           backgroundColor: background
@@ -180,7 +177,7 @@ class _DigitalClockState extends State<DigitalClock>
                 CurveTween(curve: Curves.easeInOutCirc),
               )
               .evaluate(
-                AlwaysStoppedAnimation(_controller.value),
+                AlwaysStoppedAnimation(bgUpdateController.value),
               ),
           body: Center(
             child: DefaultTextStyle(
@@ -188,7 +185,7 @@ class _DigitalClockState extends State<DigitalClock>
               child: new AspectRatio(
                 aspectRatio: 1.0,
                 child: AnimatedBuilder(
-                  animation: _controller,
+                  animation: bgUpdateController,
                   builder: (context, child) {
                     return Scaffold(
                       backgroundColor: background
@@ -196,7 +193,7 @@ class _DigitalClockState extends State<DigitalClock>
                             CurveTween(curve: Curves.easeInOutCirc),
                           )
                           .evaluate(
-                            AlwaysStoppedAnimation(_controller.value),
+                            AlwaysStoppedAnimation(bgUpdateController.value),
                           ),
                       body: new Stack(
                         children: <Widget>[
@@ -205,34 +202,32 @@ class _DigitalClockState extends State<DigitalClock>
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-//                          color: colors[_Element.shadow],
                                   color: background
                                       .chain(
                                         CurveTween(curve: Curves.linear),
                                       )
                                       .evaluate(
                                         AlwaysStoppedAnimation(
-                                            _controller.value),
+                                            bgUpdateController.value),
                                       ),
 
                                   blurRadius: 250.0,
                                   spreadRadius: 1,
                                 ),
                                 BoxShadow(
-//                            color: colors[_Element.pointerCanvas],
                                   color: background
                                       .chain(
                                         CurveTween(curve: Curves.linear),
                                       )
                                       .evaluate(
                                         AlwaysStoppedAnimation(
-                                            _controller.value),
+                                            bgUpdateController.value),
                                       ),
                                   blurRadius: 50.0,
                                   spreadRadius: 10,
                                 ),
                                 BoxShadow(
-                                  color: colors[_Element.text],
+                                  color: colors[_Substance.text],
                                   blurRadius: 10.0,
                                   spreadRadius: 1,
                                 )
@@ -242,15 +237,15 @@ class _DigitalClockState extends State<DigitalClock>
                                     CurveTween(curve: Curves.linear),
                                   )
                                   .evaluate(
-                                    AlwaysStoppedAnimation(_controller.value),
+                                    AlwaysStoppedAnimation(bgUpdateController.value),
                                   ),
                             ),
                             width: double.infinity,
                             height: double.infinity,
                             padding: const EdgeInsets.all(10.0),
                             child: new CustomPaint(
-                              painter: new ClockDialPainter(
-                                colors[_Element.text],
+                              painter: new ClockDialCanvas(
+                                colors[_Substance.text],
                               ),
                             ),
                           ),
@@ -265,10 +260,10 @@ class _DigitalClockState extends State<DigitalClock>
                                   new CustomPaint(
                                     painter: new SecondHandPainter(
                                       secondHandPaintColor:
-                                          colors[_Element.pointerCanvas],
+                                          colors[_Substance.pointerCanvas],
                                       secondHandPointsPaintColor:
-                                          colors[_Element.pointerCanvas],
-                                      seconds: _dateTime.second,
+                                          colors[_Substance.pointerCanvas],
+                                      seconds: _currentDateTime.second,
                                     ),
                                   ),
                                   Center(
@@ -307,10 +302,10 @@ class _DigitalClockState extends State<DigitalClock>
                                               FlipClock.simple(
                                                 backgroundColor:
                                                     Colors.transparent,
-                                                startTime: _dateTime,
+                                                startTime: _currentDateTime,
                                                 width: 20,
                                                 digitColor:
-                                                    colors[_Element.text],
+                                                    colors[_Substance.text],
                                                 flipDirection:
                                                     FlipDirection.down,
                                                 digitSize: 36.0,
@@ -348,8 +343,8 @@ class _DigitalClockState extends State<DigitalClock>
                                                           child: Tab(
                                                             icon:
                                                                 new Image.asset(
-                                                              _categories[widget
-                                                                  .model
+                                                              _currentWeatherConditions[widget
+                                                                  .clockModel
                                                                   .weatherCondition
                                                                   .index]['icon'],
                                                               color:
@@ -368,7 +363,7 @@ class _DigitalClockState extends State<DigitalClock>
                                                       CrossAxisAlignment.center,
                                                   children: <Widget>[
                                                     Text(
-                                                      widget.model
+                                                      widget.clockModel
                                                           .temperatureString,
                                                       overflow:
                                                           TextOverflow.ellipsis,
@@ -376,7 +371,7 @@ class _DigitalClockState extends State<DigitalClock>
                                                       style: TextStyle(
                                                         fontSize: 24,
                                                         color: colors[
-                                                            _Element.text],
+                                                            _Substance.text],
                                                         fontWeight:
                                                             FontWeight.bold,
                                                       ),
@@ -387,7 +382,7 @@ class _DigitalClockState extends State<DigitalClock>
                                                               .spaceBetween,
                                                       children: <Widget>[
                                                         Text(
-                                                          widget.model
+                                                          widget.clockModel
                                                               .weatherString,
                                                           overflow: TextOverflow
                                                               .ellipsis,
@@ -395,17 +390,17 @@ class _DigitalClockState extends State<DigitalClock>
                                                           style: TextStyle(
                                                             fontSize: 10,
                                                             color: colors[
-                                                                _Element.text],
+                                                                _Substance.text],
                                                             fontWeight:
                                                                 FontWeight.bold,
                                                           ),
                                                         ),
                                                         Text(
                                                           '(' +
-                                                              widget.model
+                                                              widget.clockModel
                                                                   .lowString +
                                                               " ~ " +
-                                                              widget.model
+                                                              widget.clockModel
                                                                   .highString +
                                                               ')',
                                                           overflow: TextOverflow
@@ -414,7 +409,7 @@ class _DigitalClockState extends State<DigitalClock>
                                                           style: TextStyle(
                                                             fontSize: 10,
                                                             color: colors[
-                                                                _Element.text],
+                                                                _Substance.text],
                                                             fontWeight:
                                                                 FontWeight.bold,
                                                           ),
@@ -428,13 +423,13 @@ class _DigitalClockState extends State<DigitalClock>
                                           ),
                                           Text(
                                             DateFormat('EEEEE, MMMM dd')
-                                                .format(_dateTime)
+                                                .format(_currentDateTime)
                                                 .toUpperCase(),
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 1,
                                             style: TextStyle(
                                               fontSize: 12,
-                                              color: colors[_Element.text],
+                                              color: colors[_Substance.text],
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -442,13 +437,13 @@ class _DigitalClockState extends State<DigitalClock>
                                             padding: EdgeInsets.symmetric(
                                                 horizontal: 25.0),
                                             child: Text(
-                                              '${widget.model.location}',
+                                              '${widget.clockModel.location}',
                                               textAlign: TextAlign.center,
                                               overflow: TextOverflow.ellipsis,
                                               maxLines: 2,
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: colors[_Element.text],
+                                                color: colors[_Substance.text],
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
