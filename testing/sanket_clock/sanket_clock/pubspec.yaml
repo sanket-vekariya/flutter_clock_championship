@@ -1,0 +1,31 @@
+name: sanket_clock
+description: A new Flutter project.
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_clock_helper:
+    path: ../flutter_clock_helper
+  cupertino_icons: ^0.1.3
+  intl: ^0.16.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: PressStart2P
+      fonts:
+        - asset: third_party/PressStart2P-Regular.ttf
+        - asset: images/cloudy.gif
+        - asset: images/foggy.gif
+        - asset: images/rainy.gif
+        - asset: images/snowy.gif
+        - asset: images/sunny.gif
+        - asset: images/stormy.gif
+        - asset: images/windy.gif
