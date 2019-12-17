@@ -20,7 +20,7 @@ enum _Substance {
 final _lightTheme = {
   _Substance.background: Colors.black12,
   _Substance.text: Colors.white,
-  _Substance.shadow: Colors.black,
+  _Substance.shadow: Colors.black38,
   _Substance.pointerCanvas: Colors.red,
   _Substance.dayStartBackground: Colors.orange,
   _Substance.dayEndBackground: Colors.black,
@@ -28,7 +28,7 @@ final _lightTheme = {
 final _darkTheme = {
   _Substance.background: Colors.transparent,
   _Substance.text: Colors.white,
-  _Substance.shadow: Colors.white,
+  _Substance.shadow: Colors.black38,
   _Substance.pointerCanvas: Colors.red,
   _Substance.dayStartBackground: Colors.black,
   _Substance.dayEndBackground: Colors.orange,
@@ -117,8 +117,8 @@ class _SanketClockState extends State<SanketClock>
 
   @override
   Widget build(BuildContext context) {
-    var hour =
-        DateFormat(widget.clockModel.is24HourFormat ? 'HH' : 'hh').format(_currentDateTime);
+    final hour = DateFormat(widget.clockModel.is24HourFormat ? 'HH' : 'hh')
+        .format(_currentDateTime);
     final Animation<double> offsetAnimation = Tween(begin: 0.0, end: 2.0)
         .chain(CurveTween(curve: Curves.linear))
         .animate(timeUpdateController)
@@ -136,15 +136,15 @@ class _SanketClockState extends State<SanketClock>
         TweenSequenceItem(
           weight: 1.0,
           tween: ColorTween(
-            begin: colors[_Substance.dayStartBackground],
-            end: colors[_Substance.dayEndBackground],
+            begin: colors[_Substance.dayEndBackground],
+            end: colors[_Substance.dayStartBackground],
           ),
         ),
         TweenSequenceItem(
           weight: 1.0,
           tween: ColorTween(
-            begin: colors[_Substance.dayEndBackground],
-            end: colors[_Substance.dayStartBackground],
+            begin: colors[_Substance.dayStartBackground],
+            end: colors[_Substance.dayEndBackground],
           ),
         ),
       ],
@@ -164,7 +164,7 @@ class _SanketClockState extends State<SanketClock>
         Shadow(
           blurRadius: 3,
           color: colors[_Substance.shadow],
-          offset: Offset(3, 0),
+          offset: Offset(2, 0),
         ),
       ],
     );
@@ -187,20 +187,38 @@ class _SanketClockState extends State<SanketClock>
                 child: AnimatedBuilder(
                   animation: bgUpdateController,
                   builder: (context, child) {
-                    return Scaffold(
-                      backgroundColor: background
-                          .chain(
-                            CurveTween(curve: Curves.easeInOutCirc),
-                          )
-                          .evaluate(
-                            AlwaysStoppedAnimation(bgUpdateController.value),
-                          ),
-                      body: new Stack(
-                        children: <Widget>[
-                          Container(
+                    return new Stack(
+                      children: <Widget>[
+                        Transform.rotate(
+                          angle: _currentDateTime.second.toDouble(),
+                          child: Container(
                             decoration: new BoxDecoration(
                               shape: BoxShape.circle,
+                              color: background
+                                  .chain(
+                                    CurveTween(curve: Curves.linear),
+                                  )
+                                  .evaluate(
+                                    AlwaysStoppedAnimation(
+                                        bgUpdateController.value),
+                                  ),
                               boxShadow: [
+                                BoxShadow(
+                                  color: background
+                                      .chain(
+                                        CurveTween(curve: Curves.easeInOutCirc),
+                                      )
+                                      .evaluate(
+                                        AlwaysStoppedAnimation(
+                                            bgUpdateController.value),
+                                      ),
+                                  blurRadius: 6.0,
+                                  spreadRadius: 2.5,
+                                  offset: Offset(
+                                    0.0,
+                                    3.0,
+                                  ),
+                                ),
                                 BoxShadow(
                                   color: background
                                       .chain(
@@ -210,7 +228,6 @@ class _SanketClockState extends State<SanketClock>
                                         AlwaysStoppedAnimation(
                                             bgUpdateController.value),
                                       ),
-
                                   blurRadius: 250.0,
                                   spreadRadius: 1,
                                 ),
@@ -232,25 +249,23 @@ class _SanketClockState extends State<SanketClock>
                                   spreadRadius: 1,
                                 )
                               ],
-                              color: background
-                                  .chain(
-                                    CurveTween(curve: Curves.linear),
-                                  )
-                                  .evaluate(
-                                    AlwaysStoppedAnimation(bgUpdateController.value),
-                                  ),
                             ),
                             width: double.infinity,
                             height: double.infinity,
                             padding: const EdgeInsets.all(10.0),
-                            child: new CustomPaint(
-                              painter: new ClockDialCanvas(
-                                colors[_Substance.text],
+                            child: Transform.rotate(
+                              angle: -_currentDateTime.second.toDouble(),
+                              child: new CustomPaint(
+                                painter: new ClockDialCanvas(
+                                  colors[_Substance.text],
+                                ),
                               ),
                             ),
                           ),
-                          AspectRatio(
-                            aspectRatio: 1.0,
+                        ),
+                        AspectRatio(
+                          aspectRatio: 1.0,
+                          child: ClipOval(
                             child: new Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(20.0),
@@ -288,7 +303,7 @@ class _SanketClockState extends State<SanketClock>
                                                 decoration: BoxDecoration(
                                                   color: Colors.transparent,
                                                 ),
-                                                width: 18 / 3,
+                                                width: 15,
                                                 height: 45,
                                                 alignment: Alignment.center,
                                                 child: Text(
@@ -303,7 +318,7 @@ class _SanketClockState extends State<SanketClock>
                                                 backgroundColor:
                                                     Colors.transparent,
                                                 startTime: _currentDateTime,
-                                                width: 20,
+                                                width: 27,
                                                 digitColor:
                                                     colors[_Substance.text],
                                                 flipDirection:
@@ -390,7 +405,8 @@ class _SanketClockState extends State<SanketClock>
                                                           style: TextStyle(
                                                             fontSize: 10,
                                                             color: colors[
-                                                                _Substance.text],
+                                                                _Substance
+                                                                    .text],
                                                             fontWeight:
                                                                 FontWeight.bold,
                                                           ),
@@ -409,7 +425,8 @@ class _SanketClockState extends State<SanketClock>
                                                           style: TextStyle(
                                                             fontSize: 10,
                                                             color: colors[
-                                                                _Substance.text],
+                                                                _Substance
+                                                                    .text],
                                                             fontWeight:
                                                                 FontWeight.bold,
                                                           ),
@@ -456,8 +473,8 @@ class _SanketClockState extends State<SanketClock>
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     );
                   },
                 ),
